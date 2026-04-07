@@ -68,8 +68,7 @@ Clique na imagem abaixo abaixo para visualizar.
 
 ## 📸 Bug Tracker
 
-👉 **[Ver print da tela](https://i.ibb.co/CKfSdsMt/image.png)**
-
+![Bug Tracker Interface](https://i.ibb.co/MkmJT5Gh/print-bug-tracker.png)
 
 
 
