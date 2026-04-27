@@ -2,8 +2,6 @@ package com.arenape.webapi.dto.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-import com.arenape.webapi.entity.enums.EventStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,10 +35,6 @@ public record EventRequestDTO(
     @NotNull(message = "A quantidade de ingressos é obrigatória")
     @Min(value = 1, message = "Deve haver pelo menos 1 ingresso disponível")
     Integer availableTickets,
-
-    // Opcional — quando omitido no update, o status atual é mantido.
-    // No create, é ignorado (sempre inicia como PENDING).
-    EventStatus status,
 
     @NotNull(message = "A data do evento é obrigatória")
     @Future(message = "A data do evento deve ser no futuro")

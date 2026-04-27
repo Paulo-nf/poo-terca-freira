@@ -52,11 +52,6 @@ public class EventService {
             throw new BusinessException("Não é possível editar um evento cancelado");
         }
 
-        if (request.status() != null) {
-            validateStatusTransition(event.getStatus(), request.status());
-            event.setStatus(request.status());
-        }
-
         event.setName(request.name());
         event.setLocation(request.location());
         event.setDescription(request.description());
@@ -76,22 +71,6 @@ public class EventService {
         }
 
         repository.delete(event);
-    }
-
-    // ─── Helpers ────────────────────────────────────────────────────────────────
-
-    private void validateStatusTransition(EventStatus current, EventStatus next) {
-        boolean invalid = switch (current) {
-            case PENDING    -> next == EventStatus.PENDING;   // já está, não faz sentido
-            case CONFIRMED  -> next == EventStatus.PENDING;   // não pode regredir
-            case CANCELLED  -> true;                          // evento cancelado não aceita mudanças
-        };
-
-        if (invalid) {
-            throw new BusinessException(
-                "Transição de status inválida: " + current + " → " + next
-            );
-        }
     }
 
     private Event findEventById(Long id) {
