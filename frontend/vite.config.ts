@@ -7,13 +7,9 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 3000,
+    port: 3030,
     hmr: {
       overlay: false,
-    },
-    proxy: {
-      "/events": "http://localhost:8080",
-      "/auth": "http://localhost:8080",
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
@@ -21,6 +17,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
 }));

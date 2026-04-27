@@ -10,6 +10,8 @@ import { Footer } from "@/components/arena/Footer";
 import { Toast } from "@/components/arena/Toast";
 import { LoginModal } from "@/components/arena/LoginModal";
 import { RegisterPage } from "@/components/arena/RegisterPage";
+import { AdminEventsPage } from "@/components/arena/AdminEventsPage";
+import { AdminEventForm } from "@/components/arena/AdminEventForm";
 
 function Shell() {
   const [page, setPage] = useState("home");
@@ -17,6 +19,7 @@ function Shell() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [editandoEvento, setEditandoEvento] = useState<Evento | null>(null);
   const { isAuthenticated, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -47,6 +50,25 @@ function Shell() {
     showToast(`🎟️ Redirecionando para compra: ${evento.nome}`);
   };
 
+  const handleSalvarEvento = (evento: Evento) => {
+    setEventos((prev) => {
+      if (page === "admin-criar" || evento.id === 0) {
+        const nextId = (prev.reduce((m, e) => Math.max(m, e.id), 0) || 0) + 1;
+        return [...prev, { ...evento, id: nextId }];
+      }
+      return prev.map((e) => (e.id === evento.id ? evento : e));
+    });
+    showToast(page === "admin-criar" ? "Evento criado!" : "Alterações salvas!");
+    setPage("admin");
+    setEditandoEvento(null);
+  };
+
+  const handleExcluir = (evento: Evento) => {
+    if (!confirm(`Excluir "${evento.nome}"?`)) return;
+    setEventos((prev) => prev.filter((e) => e.id !== evento.id));
+    showToast("Evento excluído.");
+  };
+
   return (
     <div>
       <Nav
@@ -54,7 +76,7 @@ function Shell() {
         setPage={setPage}
         onRequestLogin={() => setLoginOpen(true)}
       />
-      <Ticker eventos={eventos} />
+      {!page.startsWith("admin") && <Ticker eventos={eventos} />}
 
       {page === "home" && (
         <HomePage eventos={eventos} loading={loading} onComprar={handleComprar} setPage={setPage} />
@@ -71,7 +93,45 @@ function Shell() {
       {page === "ajuda" && <Placeholder title="Em breve" emoji="🚧" desc="Esta seção ainda está sendo desenvolvida." />}
       {page === "conta" && <Placeholder title="Minha conta" emoji="👤" desc="Em breve você poderá editar seus dados aqui." />}
       {page === "meus-ingressos" && <Placeholder title="Meus ingressos" emoji="🎟️" desc="Aqui ficarão os ingressos comprados." />}
-      {page === "admin" && isAdmin && <Placeholder title="Painel do administrador" emoji="🛠️" desc="Gestão de eventos em breve." />}
+
+      {page === "admin" && isAdmin && (
+        <AdminEventsPage
+          eventos={eventos}
+          onCriar={() => { setEditandoEvento(null); setPage("admin-criar"); }}
+          onEditar={(e) => { setEditandoEvento(e); setPage("admin-editar"); }}
+          onExcluir={handleExcluir}
+        />
+      )}
+      {page === "admin-criar" && isAdmin && (
+        <AdminEventForm
+          mode="criar"
+          onVoltar={() => setPage("admin")}
+          onSalvar={handleSalvarEvento}
+        />
+      )}
+      {page === "admin-editar" && isAdmin && editandoEvento && (
+        <AdminEventForm
+          mode="editar"
+          evento={editandoEvento}
+          onVoltar={() => setPage("admin")}
+          onSalvar={handleSalvarEvento}
+          onCancelarEvento={(e) => {
+            setEventos((prev) => prev.map((x) => x.id === e.id ? { ...x, ingressosDisponiveis: 0 } : x));
+            showToast("Evento cancelado.");
+            setPage("admin");
+          }}
+          onDuplicar={(e) => {
+            const nextId = (eventos.reduce((m, ev) => Math.max(m, ev.id), 0) || 0) + 1;
+            const dup = { ...e, id: nextId, nome: `${e.nome} (cópia)` };
+            setEventos((prev) => [...prev, dup]);
+            showToast("Evento duplicado.");
+            setEditandoEvento(dup);
+          }}
+        />
+      )}
+      {page.startsWith("admin") && !isAdmin && (
+        <Placeholder title="Acesso restrito" emoji="🔒" desc="Esta área é exclusiva para administradores." />
+      )}
 
       <Footer />
       {toast && <Toast message={toast} />}
