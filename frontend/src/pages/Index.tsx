@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  API_EVENTS, FALLBACK_EVENTOS,
-  type EventResponseDTO, type Evento,
-  type IngressoComprado, type PollVisibility,
-} from "@/lib/constants";
+import { API_EVENTS, FALLBACK_EVENTOS, type EventResponseDTO, type Evento } from "@/lib/constants";
 import { getTicketStatus, mapEvento } from "@/lib/event-utils";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Nav } from "@/components/arena/Nav";
@@ -11,100 +7,65 @@ import { Ticker } from "@/components/arena/Ticker";
 import { HomePage } from "@/components/arena/HomePage";
 import { EventsPage } from "@/components/arena/EventsPage";
 import { Footer } from "@/components/arena/Footer";
-import { Toast, type ToastVariant } from "@/components/arena/Toast";
+import { Toast } from "@/components/arena/Toast";
 import { LoginModal } from "@/components/arena/LoginModal";
 import { RegisterPage } from "@/components/arena/RegisterPage";
 import { AdminEventsPage } from "@/components/arena/AdminEventsPage";
 import { AdminEventForm } from "@/components/arena/AdminEventForm";
 import { EventDetailPage } from "@/components/arena/EventDetailPage";
-import { PurchaseModal } from "@/components/arena/PurchaseModal";
-import { MyTicketsPage } from "@/components/arena/MyTicketsPage";
-
-// ─── Estado do toast padronizado ────────────────────────────────────────────
-interface ToastState {
-  message: string;
-  variant: ToastVariant;
-}
-
-// ─── Estado de compra pendente ───────────────────────────────────────────────
-interface PendingPurchase {
-  evento: Evento;
-  quantidade: number;
-}
 
 function Shell() {
   const [page, setPage] = useState("home");
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<ToastState | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [editandoEvento, setEditandoEvento] = useState<Evento | null>(null);
   const [eventoSelecionado, setEventoSelecionado] = useState<Evento | null>(null);
-  const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null);
-  const [ingressos, setIngressos] = useState<IngressoComprado[]>([]);
-  const [pollVisibility, setPollVisibility] = useState<PollVisibility>("visible");
-
   const { isAuthenticated, isAdmin } = useAuth();
+
+  // ─── Estado global da enquete ───
+  const [enqueteVisivel, setEnqueteVisivel] = useState(true);
+  const [enqueteIds, setEnqueteIds] = useState<number[]>([]);
 
   useEffect(() => {
     fetch(API_EVENTS)
       .then((r) => r.json())
       .then((d: EventResponseDTO[]) => {
-        setEventos(Array.isArray(d) ? d.map(mapEvento) : []);
+        const mapped = Array.isArray(d) ? d.map(mapEvento) : [];
+        setEventos(mapped);
+        // Inicializa enquete com os 3 primeiros eventos por padrão
+        setEnqueteIds(mapped.slice(0, 3).map((e) => e.id));
         setLoading(false);
       })
       .catch(() => {
         setEventos(FALLBACK_EVENTOS);
+        setEnqueteIds(FALLBACK_EVENTOS.slice(0, 3).map((e) => e.id));
         setLoading(false);
       });
   }, []);
 
-  // ─── Toast padronizado ─────────────────────────────────────────────────────
-  const showToast = (message: string, variant: ToastVariant = "info") => {
-    setToast({ message, variant });
-    setTimeout(() => setToast(null), 3500);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
   };
 
-  // ─── Compra ────────────────────────────────────────────────────────────────
-  const handleComprar = (evento: Evento, quantidade = 1) => {
+  const handleComprar = (evento: Evento) => {
     if (getTicketStatus(evento.ingressosDisponiveis).esgotado) return;
     if (!isAuthenticated) {
       setLoginOpen(true);
-      showToast("Faça login para comprar ingressos.", "warning");
+      showToast("Faça login para comprar ingressos.");
       return;
     }
-    setPendingPurchase({ evento, quantidade });
+    showToast(`🎟️ Redirecionando para compra: ${evento.nome}`);
   };
 
-  const handleCompraConfirmada = (ingresso: IngressoComprado) => {
-    // Atualiza ingressos disponíveis
-    setEventos((prev) =>
-      prev.map((e) =>
-        e.id === ingresso.eventoId
-          ? { ...e, ingressosDisponiveis: Math.max(0, e.ingressosDisponiveis - ingresso.quantidade) }
-          : e
-      )
-    );
-    setIngressos((prev) => [ingresso, ...prev]);
-    showToast(`🎟️ Compra confirmada! Código: ${ingresso.codigoConfirmacao}`, "success");
-    // Após fechar o modal, redireciona para meus ingressos
-    setPendingPurchase(null);
-    setPage("meus-ingressos");
-  };
-
-  // ─── Navegação de eventos ──────────────────────────────────────────────────
   const handleSelectEvento = (evento: Evento) => {
     setEventoSelecionado(evento);
     setPage("evento");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleVerEventoById = (id: number) => {
-    const ev = eventos.find((e) => e.id === id);
-    if (ev) handleSelectEvento(ev);
-  };
-
-  // ─── Admin ─────────────────────────────────────────────────────────────────
   const handleSalvarEvento = (evento: Evento) => {
     setEventos((prev) => {
       if (page === "admin-criar" || evento.id === 0) {
@@ -113,33 +74,22 @@ function Shell() {
       }
       return prev.map((e) => (e.id === evento.id ? evento : e));
     });
-    showToast(page === "admin-criar" ? "Evento criado com sucesso!" : "Alterações salvas com sucesso!", "success");
+    showToast(page === "admin-criar" ? "Evento criado!" : "Alterações salvas!");
     setPage("admin");
     setEditandoEvento(null);
   };
 
   const handleExcluir = (evento: Evento) => {
-    if (!confirm(`Excluir "${evento.nome}"? Esta ação não pode ser desfeita.`)) return;
+    if (!confirm(`Excluir "${evento.nome}"?`)) return;
     setEventos((prev) => prev.filter((e) => e.id !== evento.id));
-    showToast("Evento excluído.", "warning");
-  };
-
-  const handleTogglePoll = () => {
-    const next: PollVisibility = pollVisibility === "visible" ? "hidden" : "visible";
-    setPollVisibility(next);
-    showToast(
-      next === "visible" ? "Enquete ativada e visível para o público." : "Enquete ocultada do público.",
-      next === "visible" ? "success" : "warning"
-    );
+    // Remove da enquete se estiver lá
+    setEnqueteIds((prev) => prev.filter((id) => id !== evento.id));
+    showToast("Evento excluído.");
   };
 
   return (
     <div>
-      <Nav
-        page={page}
-        setPage={setPage}
-        onRequestLogin={() => setLoginOpen(true)}
-      />
+      <Nav page={page} setPage={setPage} onRequestLogin={() => setLoginOpen(true)} />
       {!page.startsWith("admin") && <Ticker eventos={eventos} />}
 
       {page === "home" && (
@@ -149,18 +99,12 @@ function Shell() {
           onComprar={handleComprar}
           onSelectEvento={handleSelectEvento}
           setPage={setPage}
-          pollVisibility={pollVisibility}
-          onTogglePoll={isAdmin ? handleTogglePoll : undefined}
-          isAdmin={isAdmin}
+          enqueteVisivel={enqueteVisivel}
+          enqueteIds={enqueteIds}
         />
       )}
       {page === "eventos" && (
-        <EventsPage
-          eventos={eventos}
-          loading={loading}
-          onComprar={handleComprar}
-          onSelectEvento={handleSelectEvento}
-        />
+        <EventsPage eventos={eventos} loading={loading} onComprar={handleComprar} onSelectEvento={handleSelectEvento} />
       )}
       {page === "evento" && eventoSelecionado && (
         <EventDetailPage
@@ -169,31 +113,22 @@ function Shell() {
           onComprar={(ev, qtd) => {
             if (!isAuthenticated) {
               setLoginOpen(true);
-              showToast("Faça login para comprar ingressos.", "warning");
+              showToast("Faça login para comprar ingressos.");
               return;
             }
-            setPendingPurchase({ evento: ev, quantidade: qtd });
+            showToast(`🎟️ ${qtd} ingresso(s) para ${ev.nome} reservado(s)!`);
           }}
         />
       )}
       {page === "registro" && (
         <RegisterPage
-          onSuccess={(name) => {
-            showToast(`Bem-vindo(a), ${name.split(" ")[0]}! Conta criada com sucesso.`, "success");
-            setPage("home");
-          }}
+          onSuccess={(name) => { showToast(`Bem-vindo, ${name.split(" ")[0]}!`); setPage("home"); }}
           onCancel={() => setPage("home")}
         />
       )}
-      {page === "ajuda" && (
-        <Placeholder title="Central de Ajuda" emoji="🛟" desc="Esta seção está sendo desenvolvida. Em breve você encontrará respostas para as suas dúvidas aqui." />
-      )}
-      {page === "conta" && (
-        <Placeholder title="Minha Conta" emoji="👤" desc="Em breve você poderá editar seus dados e preferências aqui." />
-      )}
-      {page === "meus-ingressos" && (
-        <MyTicketsPage ingressos={ingressos} onVerEvento={handleVerEventoById} />
-      )}
+      {page === "ajuda" && <Placeholder title="Em breve" emoji="🚧" desc="Esta seção ainda está sendo desenvolvida." />}
+      {page === "conta" && <Placeholder title="Minha conta" emoji="👤" desc="Em breve você poderá editar seus dados aqui." />}
+      {page === "meus-ingressos" && <Placeholder title="Meus ingressos" emoji="🎟️" desc="Aqui ficarão os ingressos comprados." />}
 
       {page === "admin" && isAdmin && (
         <AdminEventsPage
@@ -201,6 +136,15 @@ function Shell() {
           onCriar={() => { setEditandoEvento(null); setPage("admin-criar"); }}
           onEditar={(e) => { setEditandoEvento(e); setPage("admin-editar"); }}
           onExcluir={handleExcluir}
+          enqueteVisivel={enqueteVisivel}
+          enqueteIds={enqueteIds}
+          onToggleEnquete={(v) => {
+            setEnqueteVisivel(v);
+            showToast(v ? "Enquete agora visível para os usuários." : "Enquete ocultada dos usuários.");
+          }}
+          onSalvarEnquete={(ids) => {
+            setEnqueteIds(ids);
+          }}
         />
       )}
       {page === "admin-criar" && isAdmin && (
@@ -218,41 +162,30 @@ function Shell() {
           onSalvar={handleSalvarEvento}
           onCancelarEvento={(e) => {
             setEventos((prev) => prev.map((x) => x.id === e.id ? { ...x, ingressosDisponiveis: 0 } : x));
-            showToast("Evento cancelado. Ingressos marcados como esgotados.", "warning");
+            showToast("Evento cancelado.");
             setPage("admin");
           }}
           onDuplicar={(e) => {
             const nextId = (eventos.reduce((m, ev) => Math.max(m, ev.id), 0) || 0) + 1;
             const dup = { ...e, id: nextId, nome: `${e.nome} (cópia)` };
             setEventos((prev) => [...prev, dup]);
-            showToast("Evento duplicado com sucesso!", "success");
+            showToast("Evento duplicado.");
             setEditandoEvento(dup);
           }}
         />
       )}
       {page.startsWith("admin") && !isAdmin && (
-        <Placeholder title="Acesso Restrito" emoji="🔒" desc="Esta área é exclusiva para administradores. Faça login com uma conta de administrador para continuar." />
+        <Placeholder title="Acesso restrito" emoji="🔒" desc="Esta área é exclusiva para administradores." />
       )}
 
       <Footer />
-
-      {toast && <Toast message={toast.message} variant={toast.variant} />}
-
-      {/* Modal de compra */}
-      {pendingPurchase && (
-        <PurchaseModal
-          evento={pendingPurchase.evento}
-          quantidade={pendingPurchase.quantidade}
-          onClose={() => setPendingPurchase(null)}
-          onSuccess={handleCompraConfirmada}
-        />
-      )}
+      {toast && <Toast message={toast} />}
 
       <LoginModal
         open={loginOpen}
         onClose={() => setLoginOpen(false)}
         onGoToRegister={() => setPage("registro")}
-        onSuccess={(name) => showToast(`Bem-vindo(a) de volta, ${name}!`, "success")}
+        onSuccess={(email) => showToast(`Bem-vindo, ${email}!`)}
       />
     </div>
   );
@@ -263,7 +196,7 @@ function Placeholder({ title, emoji, desc }: { title: string; emoji: string; des
     <div className="text-center py-20 text-muted-foreground">
       <div className="text-5xl mb-4">{emoji}</div>
       <h3 className="font-heading text-xl font-extrabold text-blue-dark mb-2">{title}</h3>
-      <p className="max-w-xs mx-auto text-sm">{desc}</p>
+      <p>{desc}</p>
     </div>
   );
 }

@@ -9,7 +9,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ open, onClose, onGoToRegister, onSuccess }: LoginModalProps) {
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,11 +34,10 @@ export function LoginModal({ open, onClose, onGoToRegister, onSuccess }: LoginMo
     setLoading(true); setError(null);
     try {
       await login(email.trim(), password);
-      // user é atualizado de forma assíncrona no contexto; usamos o email como fallback
-      onSuccess?.(email.trim());
+      onSuccess?.(email);
       onClose();
     } catch (err: any) {
-      setError(err?.message || "Não foi possível entrar. Verifique suas credenciais.");
+      setError(err?.message || "Não foi possível entrar.");
     } finally {
       setLoading(false);
     }

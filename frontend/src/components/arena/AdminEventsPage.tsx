@@ -7,6 +7,11 @@ interface AdminEventsPageProps {
   onCriar: () => void;
   onEditar: (evento: Evento) => void;
   onExcluir: (evento: Evento) => void;
+  // Enquete
+  enqueteVisivel: boolean;
+  enqueteIds: number[];
+  onToggleEnquete: (visivel: boolean) => void;
+  onSalvarEnquete: (ids: number[]) => void;
 }
 
 type StatusKey = "ATIVO" | "PLANEJAMENTO" | "CANCELADO";
@@ -17,7 +22,6 @@ const STATUS_META: Record<StatusKey, { label: string; dot: string; text: string 
   CANCELADO:     { label: "Cancelado",      dot: "bg-rose-500",    text: "text-rose-600" },
 };
 
-// Heurística de status a partir dos dados existentes
 function inferStatus(e: Evento): StatusKey {
   if (e.ingressosDisponiveis <= 0) return "CANCELADO";
   const today = new Date().toISOString().slice(0, 10);
@@ -25,7 +29,6 @@ function inferStatus(e: Evento): StatusKey {
   return "ATIVO";
 }
 
-// Capacidade total estimada: arredondar para o próximo "milhar bonito"
 function capacidadeTotal(e: Evento) {
   const base = Math.max(e.ingressosDisponiveis, 100);
   if (base <= 200) return 200;
@@ -34,10 +37,21 @@ function capacidadeTotal(e: Evento) {
   return Math.ceil(base / 1000) * 1000;
 }
 
-export function AdminEventsPage({ eventos, onCriar, onEditar, onExcluir }: AdminEventsPageProps) {
+export function AdminEventsPage({
+  eventos,
+  onCriar,
+  onEditar,
+  onExcluir,
+  enqueteVisivel,
+  enqueteIds,
+  onToggleEnquete,
+  onSalvarEnquete,
+}: AdminEventsPageProps) {
   const [filtroStatus, setFiltroStatus] = useState<"TODOS" | StatusKey>("TODOS");
   const [filtroPeriodo, setFiltroPeriodo] = useState<"PROXIMOS" | "PASSADOS" | "TODOS">("PROXIMOS");
   const [busca, setBusca] = useState("");
+  const [localEnqueteIds, setLocalEnqueteIds] = useState<number[]>(enqueteIds);
+  const [enqueteSalva, setEnqueteSalva] = useState(false);
 
   const linhas = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -69,6 +83,19 @@ export function AdminEventsPage({ eventos, onCriar, onEditar, onExcluir }: Admin
     return { ativos, vendidos, receita };
   }, [eventos]);
 
+  function toggleEnqueteItem(id: number) {
+    setLocalEnqueteIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+    setEnqueteSalva(false);
+  }
+
+  function handleSalvarEnquete() {
+    onSalvarEnquete(localEnqueteIds);
+    setEnqueteSalva(true);
+    setTimeout(() => setEnqueteSalva(false), 2500);
+  }
+
   return (
     <main className="max-w-[1180px] mx-auto px-12 py-10 max-md:px-5">
       {/* KPIs */}
@@ -77,6 +104,118 @@ export function AdminEventsPage({ eventos, onCriar, onEditar, onExcluir }: Admin
         <KpiCard icon="🎟️" label="Ingressos Vendidos" value={totais.vendidos.toLocaleString("pt-BR")} />
         <KpiCard icon="💰" label="Receita Total" value={formatPrice(totais.receita)} />
       </section>
+
+      {/* ─── PAINEL DE CONTROLE DA ENQUETE ─── */}
+      <section className="bg-card border border-border rounded-lg shadow-sm px-6 py-5 mb-8">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+          <div>
+            <h2 className="font-heading text-base font-extrabold text-blue-dark flex items-center gap-2">
+              🗳️ Enquete — "Próximo Evento"
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Escolha quais eventos aparecem na votação da página inicial e se ela será exibida.
+            </p>
+          </div>
+
+          {/* Toggle Exibir / Ocultar */}
+          <div className="flex items-center gap-3">
+            <span className={`text-sm font-semibold ${enqueteVisivel ? "text-blue-dark" : "text-muted-foreground"}`}>
+              {enqueteVisivel ? "Visível para usuários" : "Oculta para usuários"}
+            </span>
+            <button
+              onClick={() => onToggleEnquete(!enqueteVisivel)}
+              aria-label="Alternar visibilidade da enquete"
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue/30 ${
+                enqueteVisivel ? "bg-blue" : "bg-muted-foreground/30"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  enqueteVisivel ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Seleção de eventos */}
+        <div className={`transition-opacity duration-200 ${enqueteVisivel ? "opacity-100" : "opacity-40 pointer-events-none select-none"}`}>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+            Selecione os eventos que irão à votação:
+          </p>
+
+          {eventos.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              Nenhum evento cadastrado ainda.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {eventos.map((e) => {
+                const selecionado = localEnqueteIds.includes(e.id);
+                const cat = CATEGORIES[e.categoria];
+                return (
+                  <label
+                    key={e.id}
+                    className={`flex items-start gap-3 p-3.5 rounded-xl border-[1.5px] cursor-pointer transition-all duration-150 select-none ${
+                      selecionado
+                        ? "border-blue bg-blue-light"
+                        : "border-border bg-card hover:border-blue/30 hover:bg-blue-light/40"
+                    }`}
+                  >
+                    <div className="mt-0.5 flex-shrink-0">
+                      <div
+                        className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                          selecionado ? "bg-blue border-blue" : "border-border bg-card"
+                        }`}
+                      >
+                        {selecionado && (
+                          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                            <path d="M1 4l2.5 2.5L9 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={selecionado}
+                      onChange={() => toggleEnqueteItem(e.id)}
+                      className="sr-only"
+                    />
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-blue-dark truncate">{e.nome}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {cat.emoji} {cat.label} · {e.data.slice(8, 10)}/{e.data.slice(5, 7)}/{e.data.slice(0, 4)}
+                      </p>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Rodapé */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border flex-wrap gap-3">
+            <span className="text-xs text-muted-foreground">
+              {localEnqueteIds.length === 0
+                ? "Nenhum evento selecionado para votação."
+                : `${localEnqueteIds.length} evento(s) selecionado(s) para a enquete.`}
+            </span>
+            <button
+              onClick={handleSalvarEnquete}
+              disabled={enqueteSalva}
+              className={`px-4 py-2 rounded-[10px] text-sm font-extrabold transition-colors ${
+                enqueteSalva
+                  ? "bg-emerald-500 text-white cursor-default"
+                  : "bg-blue-dark text-primary-foreground hover:bg-blue"
+              }`}
+            >
+              {enqueteSalva ? "✓ Salvo!" : "Salvar enquete"}
+            </button>
+          </div>
+        </div>
+      </section>
+      {/* ─── FIM PAINEL ENQUETE ─── */}
 
       {/* Header + filtros */}
       <header className="flex justify-between items-start gap-6 mb-7 flex-wrap">
