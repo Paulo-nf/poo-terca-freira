@@ -41,31 +41,6 @@ O projeto busca **resolver esse problema por meio de uma solução tecnológica*
 * Pedro Armando  
 * Paulo Nery
 
-# Entrega 1
-
-## 🎨 Protótipo no Figma
-
-Clique na imagem abaixo para visualizar o board do projeto no Figma.
-
-[![Figma](https://img.shields.io/badge/Ver%20no%20Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/design/uUnYvqXewYGu32xTjMx6K4/Untitled?node-id=0-1&p=f&t=wJDdoVGdvRHGltFI-0)
-
-## 🎥 Demonstração do Projeto
-
-Clique na imagem abaixo para assistir à demonstração do sistema.
-
-[![Demonstração do Projeto](https://img.youtube.com/vi/rY0nByWVCTE/0.jpg)](https://youtu.be/rY0nByWVCTE)
-
-## 📄 Histórias de Usuário
-
-Clique na imagem abaixo abaixo para visualizar.
-
-[![Google Docs](https://img.shields.io/badge/Histórias%20de%20Usuário-Google%20Docs-blue?style=for-the-badge&logo=googledocs&logoColor=white)](https://docs.google.com/document/d/1pr9lrvJhAbzC1pVu2YAyu88P86T6NZQV/edit?usp=sharing)
-
-# Entrega 2
-
-## 📺  Screencast
-👉 **[Demo](https://youtu.be/HBw482dQmb0?si=TTZNCfSk2JqGlnu0)**
-
 ## Pré-requisitos
 
 - Java 17+
@@ -201,8 +176,37 @@ http://localhost:8080/swagger-ui/index.html
 - Registro público sempre cria usuários com role `USER`
 - Token JWT expira conforme `JWT_EXPIRATION_MS` (padrão: 24h)
 
+
+# Entrega 1
+
+## 🎨 Protótipo no Figma
+
+Clique na imagem abaixo para visualizar o board do projeto no Figma.
+
+[![Figma](https://img.shields.io/badge/Ver%20no%20Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/design/uUnYvqXewYGu32xTjMx6K4/Untitled?node-id=0-1&p=f&t=wJDdoVGdvRHGltFI-0)
+
+## 🎥 Demonstração do Projeto
+
+Clique na imagem abaixo para assistir à demonstração do sistema.
+
+[![Demonstração do Projeto](https://img.youtube.com/vi/rY0nByWVCTE/0.jpg)](https://youtu.be/rY0nByWVCTE)
+
+## 📄 Histórias de Usuário
+
+Clique na imagem abaixo abaixo para visualizar.
+
+[![Google Docs](https://img.shields.io/badge/Histórias%20de%20Usuário-Google%20Docs-blue?style=for-the-badge&logo=googledocs&logoColor=white)](https://docs.google.com/document/d/1pr9lrvJhAbzC1pVu2YAyu88P86T6NZQV/edit?usp=sharing)
+
+# Entrega 2
+
+## 📺  Screencast
+👉 **[Demo](https://youtu.be/HBw482dQmb0?si=TTZNCfSk2JqGlnu0)**
+
 ![Bug Tracker Interface](https://i.ibb.co/MkmJT5Gh/print-bug-tracker.png)
 
+# Entrega 3
+## 📺  Screencast
+👉 **[Demo](https://youtu.be/NRYEwl3QbmU)**
 
 
 
