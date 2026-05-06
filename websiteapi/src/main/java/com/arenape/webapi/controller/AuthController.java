@@ -5,17 +5,19 @@ import com.arenape.webapi.dto.request.LoginRequestDTO;
 import com.arenape.webapi.dto.response.AuthResponseDTO;
 import com.arenape.webapi.service.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -26,5 +28,9 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponseDTO login(@RequestBody @Valid LoginRequestDTO request) {
         return authService.login(request);
+    }
+
+    public AuthService getAuthService() {
+        return authService;
     }
 }

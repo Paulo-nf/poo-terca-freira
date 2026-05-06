@@ -8,19 +8,23 @@ import com.arenape.webapi.entity.enums.UserRole;
 import com.arenape.webapi.exception.BusinessException;
 import com.arenape.webapi.repository.UserRepository;
 import com.arenape.webapi.security.JwtService;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
 
     public AuthResponseDTO register(AuthRequestDTO request) {
         if (userRepository.existsByEmail(request.email())) {
@@ -31,7 +35,7 @@ public class AuthService {
         user.setName(request.name());
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(UserRole.USER); // registro público sempre cria USER
+        user.setRole(UserRole.USER);
 
         userRepository.save(user);
 
@@ -49,5 +53,17 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
         return new AuthResponseDTO(token, user.getName(), user.getRole().name());
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
+    }
+
+    public PasswordEncoder getPasswordEncoder() {
+        return passwordEncoder;
+    }
+
+    public JwtService getJwtService() {
+        return jwtService;
     }
 }

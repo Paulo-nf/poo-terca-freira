@@ -3,7 +3,6 @@ package com.arenape.webapi.config;
 import com.arenape.webapi.entity.User;
 import com.arenape.webapi.entity.enums.UserRole;
 import com.arenape.webapi.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -12,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-@RequiredArgsConstructor
 public class AdminSeeder {
 
     private final UserRepository userRepository;
@@ -23,6 +21,11 @@ public class AdminSeeder {
 
     @Value("${admin.password:admin123}")
     private String adminPassword;
+
+    public AdminSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Bean
     public CommandLineRunner seedAdmin() {
@@ -37,5 +40,29 @@ public class AdminSeeder {
                 System.out.println(">>> Admin criado: " + adminEmail);
             }
         };
+    }
+
+    public String getAdminEmail() {
+        return adminEmail;
+    }
+
+    public void setAdminEmail(String adminEmail) {
+        this.adminEmail = adminEmail;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
+    }
+
+    public PasswordEncoder getPasswordEncoder() {
+        return passwordEncoder;
     }
 }
