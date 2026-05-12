@@ -116,10 +116,14 @@ function Shell() {
                 throw new Error(serverMessage);
             }
 
-            // Pega o objeto salvo do banco de dados (que está em inglês)
-            const eventoSalvo = await response.json();
+            // 1. Pega o JSON completo da resposta
+            const responseBody = await response.json();
 
-            // Atualiza a tela usando a função mapEvento para traduzir de volta para português
+            // 2. Extrai o evento de dentro do wrapper "dados" (se ele existir)
+            // Se o backend retornar direto o objeto, ele usa o responseBody.
+            const eventoSalvo = responseBody.dados ? responseBody.dados : responseBody;
+
+            // Atualiza a tela usando a função mapEvento
             setEventos((prev) => {
                 if (isCriando) return [...prev, mapEvento(eventoSalvo)];
                 return prev.map((e) => (e.id === eventoSalvo.id ? mapEvento(eventoSalvo) : e));
