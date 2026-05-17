@@ -13,6 +13,9 @@ import { RegisterPage } from "@/components/arena/RegisterPage";
 import { AdminEventsPage } from "@/components/arena/AdminEventsPage";
 import { AdminEventForm } from "@/components/arena/AdminEventForm";
 import { EventDetailPage } from "@/components/arena/EventDetailPage";
+import { PaymentPage } from "@/components/arena/PaymentPage";
+import { MyTicketsPage } from "@/components/arena/MyTicketsPage";
+import { type TicketDTO } from "@/lib/tickets-api";
 
 function Shell() {
     const [page, setPage] = useState("home");
@@ -22,6 +25,7 @@ function Shell() {
     const [loginOpen, setLoginOpen] = useState(false);
     const [editandoEvento, setEditandoEvento] = useState<Evento | null>(null);
     const [eventoSelecionado, setEventoSelecionado] = useState<Evento | null>(null);
+    const [ingressoCompra, setIngressoCompra] = useState<{ evento: Evento; quantidade: number } | null>(null);
     const { isAuthenticated, isAdmin, token } = useAuth();
 
     // ─── Estado global da enquete ───
@@ -205,7 +209,31 @@ function Shell() {
                             showToast("Faça login para comprar ingressos.");
                             return;
                         }
-                        showToast(`🎟️ ${qtd} ingresso(s) para ${ev.nome} reservado(s)!`);
+                        setIngressoCompra({ evento: ev, quantidade: qtd });
+                        setPage("pagamento");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                />
+            )}
+            {page === "pagamento" && ingressoCompra && isAuthenticated && (
+                <PaymentPage
+                    evento={ingressoCompra.evento}
+                    quantidade={ingressoCompra.quantidade}
+                    onVoltar={() => {
+                        setEventoSelecionado(ingressoCompra.evento);
+                        setPage("evento");
+                    }}
+                    onSucesso={(ticket: TicketDTO) => {
+                        setEventos((prev) =>
+                            prev.map((e) =>
+                                e.id === ticket.eventId
+                                    ? { ...e, ingressosDisponiveis: Math.max(0, e.ingressosDisponiveis - ticket.quantity) }
+                                    : e
+                            )
+                        );
+                        setIngressoCompra(null);
+                        setPage("meus-ingressos");
+                        showToast(`Ingressos para "${ticket.eventName}" confirmados!`);
                     }}
                 />
             )}
@@ -217,7 +245,17 @@ function Shell() {
             )}
             {page === "ajuda" && <Placeholder title="Em breve" emoji="🚧" desc="Esta seção ainda está sendo desenvolvida." />}
             {page === "conta" && <Placeholder title="Minha conta" emoji="👤" desc="Em breve você poderá editar seus dados aqui." />}
-            {page === "meus-ingressos" && <Placeholder title="Meus ingressos" emoji="🎟️" desc="Aqui ficarão os ingressos comprados." />}
+            {page === "meus-ingressos" && isAuthenticated && (
+                <MyTicketsPage
+                    onVerEvento={(eventoId) => {
+                        const ev = eventos.find((e) => e.id === eventoId);
+                        if (ev) { setEventoSelecionado(ev); setPage("evento"); }
+                    }}
+                />
+            )}
+            {page === "meus-ingressos" && !isAuthenticated && (
+                <Placeholder title="Acesso restrito" emoji="🔒" desc="Faça login para ver seus ingressos." />
+            )}
 
             {page === "admin" && isAdmin && (
                 <AdminEventsPage
