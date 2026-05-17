@@ -6,6 +6,12 @@ export function formatDate(dateStr: string) {
     return { day: d, month: MONTHS_PT[+m - 1], year: y };
 }
 
+export function formatTime(dateStr: string) {
+    const tIdx = dateStr.indexOf("T");
+    if (tIdx === -1) return "20:00";
+    return dateStr.slice(tIdx + 1, tIdx + 6);
+}
+
 export function formatPrice(value: number) {
     if (!value || value <= 0) return "Gratuito";
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -42,5 +48,6 @@ export function mapEvento(dto: any): Evento {
         totalIngressos: dto.totalTickets ?? dto.availableTickets,
         data: dto.eventDate,
         categoria: inferCategoria(dto),
+        status: dto.status ?? "PENDING",
     };
 }

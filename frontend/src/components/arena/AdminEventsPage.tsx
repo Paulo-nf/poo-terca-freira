@@ -14,15 +14,17 @@ interface AdminEventsPageProps {
   onSalvarEnquete: (ids: number[]) => void;
 }
 
-type StatusKey = "ATIVO" | "CANCELADO";
+type StatusKey = "ATIVO" | "ESGOTADO" | "CANCELADO";
 
 const STATUS_META: Record<StatusKey, { label: string; dot: string; text: string }> = {
   ATIVO:     { label: "Ativo",     dot: "bg-emerald-500", text: "text-emerald-600" },
+  ESGOTADO:  { label: "Esgotado",  dot: "bg-amber-500",   text: "text-amber-600" },
   CANCELADO: { label: "Cancelado", dot: "bg-rose-500",    text: "text-rose-600" },
 };
 
 function inferStatus(e: Evento): StatusKey {
-  if (e.ingressosDisponiveis <= 0) return "CANCELADO";
+  if (e.status === "CANCELLED") return "CANCELADO";
+  if (e.ingressosDisponiveis <= 0) return "ESGOTADO";
   return "ATIVO";
 }
 
@@ -63,7 +65,7 @@ export function AdminEventsPage({
   }, [eventos, filtroStatus, filtroPeriodo, busca]);
 
   const totais = useMemo(() => {
-    const ativos = eventos.filter((e) => inferStatus(e) === "ATIVO").length;
+    const ativos = eventos.filter((e) => inferStatus(e) !== "CANCELADO").length;
     let vendidos = 0;
     let receita = 0;
     eventos.forEach((e) => {
@@ -237,6 +239,7 @@ export function AdminEventsPage({
               options={[
                 { value: "TODOS", label: "Todos os status" },
                 { value: "ATIVO", label: "Ativo" },
+                { value: "ESGOTADO", label: "Esgotado" },
                 { value: "CANCELADO", label: "Cancelado" },
               ]}
             />
@@ -288,7 +291,7 @@ export function AdminEventsPage({
                 const cat = CATEGORIES[e.categoria];
                 const { day, month, year } = formatDate(e.data);
                 const meta = STATUS_META[status];
-                const pct = total ? Math.min(100, Math.round((vendidos / total) * 100)) : 0;
+                const pct = status === "ESGOTADO" ? 100 : (total ? Math.min(100, Math.round((vendidos / total) * 100)) : 0);
                 return (
                   <tr
                     key={e.id}
@@ -308,7 +311,10 @@ export function AdminEventsPage({
                     </td>
                     <td className="px-6 py-4 min-w-[180px]">
                       <div className="text-foreground/80 mb-1.5">
-                        {vendidos} / {total}
+                        {status === "ESGOTADO" && total === 0
+                          ? <span className="text-amber-600 font-bold">Esgotado</span>
+                          : `${vendidos} / ${total}`
+                        }
                       </div>
                       <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                         <div className="h-full bg-blue rounded-full" style={{ width: `${pct}%` }} />

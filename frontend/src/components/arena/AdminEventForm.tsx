@@ -11,10 +11,11 @@ interface AdminEventFormProps {
   onDuplicar?: (evento: Evento) => void;
 }
 
-type StatusKey = "ATIVO" | "CANCELADO";
+type StatusKey = "ATIVO" | "ESGOTADO" | "CANCELADO";
 
 const STATUS_META: Record<StatusKey, { label: string; dot: string; text: string }> = {
   ATIVO:     { label: "Ativo",     dot: "bg-emerald-500", text: "text-emerald-600" },
+  ESGOTADO:  { label: "Esgotado",  dot: "bg-amber-500",   text: "text-amber-600" },
   CANCELADO: { label: "Cancelado", dot: "bg-rose-500",    text: "text-rose-600" },
 };
 
@@ -28,6 +29,7 @@ const DEFAULT_EVENTO: Evento = {
   totalIngressos: 1000,
   preco: 0,
   imagemUrl: null,
+  status: "PENDING",
 };
 
 export function AdminEventForm({
@@ -40,16 +42,25 @@ export function AdminEventForm({
 }: AdminEventFormProps) {
   const base = evento ?? DEFAULT_EVENTO;
   const [form, setForm] = useState<Evento>(base);
-  const [hora, setHora] = useState(evento ? "20:00" : "20:00");
+  const [hora, setHora] = useState(() => {
+    if (evento?.data?.includes("T")) return evento.data.slice(11, 16);
+    return "20:00";
+  });
   const [capacidade, setCapacidade] = useState<number>(base.ingressosDisponiveis || 1000);
-  const [status] = useState<StatusKey>(base.ingressosDisponiveis <= 0 ? "CANCELADO" : "ATIVO");
+  const [status] = useState<StatusKey>(() => {
+    if (base.status === "CANCELLED") return "CANCELADO";
+    if (base.ingressosDisponiveis <= 0) return "ESGOTADO";
+    return "ATIVO";
+  });
 
   const update = <K extends keyof Evento>(k: K, v: Evento[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleSalvar = () => {
     const isCriando = mode === "criar";
+    const dateOnly = form.data.includes("T") ? form.data.slice(0, 10) : form.data;
     onSalvar({
       ...form,
+      data: `${dateOnly}T${hora}`,
       ingressosDisponiveis: capacidade,
       totalIngressos: isCriando ? capacidade : (form.totalIngressos || capacidade),
     });

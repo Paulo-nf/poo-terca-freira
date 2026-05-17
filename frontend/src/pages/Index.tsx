@@ -83,8 +83,6 @@ function Shell() {
         const url = isCriando ? API_EVENTS : `${API_EVENTS}/${evento.id}`;
         const method = isCriando ? "POST" : "PUT";
 
-        // Formata a data para incluir o horário exigido pelo backend (ex: "2026-04-15T20:00:00")
-        // New code (Removed the final :00 for the seconds)
         const dataFormatada = evento.data.includes("T")
             ? evento.data
             : `${evento.data}T20:00`;

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CATEGORIES, type Evento } from "@/lib/constants";
-import { formatDate, formatPrice, getTicketStatus } from "@/lib/event-utils";
+import { formatDate, formatPrice, formatTime, getTicketStatus } from "@/lib/event-utils";
 
 interface EventDetailPageProps {
   evento: Evento;
@@ -44,7 +44,7 @@ export function EventDetailPage({ evento, onVoltar, onComprar }: EventDetailPage
               {evento.nome}
             </h1>
             <p className="text-[14px] text-muted-foreground font-semibold">
-              {day} {month.toLowerCase()} - {year} às 20:00
+              {day} {month.toLowerCase()} - {year} às {formatTime(evento.data)}
             </p>
           </div>
 

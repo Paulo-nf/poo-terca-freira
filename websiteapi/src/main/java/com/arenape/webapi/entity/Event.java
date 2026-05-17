@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 
 @Entity
@@ -66,6 +67,16 @@ public class Event {
     public void prePersist() {
         if (status == null) {
             status = EventStatus.PENDING;
+        }
+        if (totalTickets == null) {
+            totalTickets = availableTickets;
+        }
+    }
+
+    @PostLoad
+    public void postLoad() {
+        if (totalTickets == null) {
+            totalTickets = availableTickets != null ? availableTickets : 0;
         }
     }
 

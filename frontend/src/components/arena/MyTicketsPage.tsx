@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchMyTickets, type TicketDTO } from "@/lib/tickets-api";
-import { formatDate, formatPrice } from "@/lib/event-utils";
+import { formatDate, formatPrice, formatTime } from "@/lib/event-utils";
 
 interface MyTicketsPageProps {
   onVerEvento?: (eventoId: number) => void;
@@ -161,7 +161,7 @@ function TicketCard({
         </div>
         <div className="text-[12.5px] text-muted-foreground">
           <p className="font-semibold">{year}</p>
-          <p>às 20:00</p>
+          <p>às {formatTime(ticket.eventDate)}</p>
         </div>
       </div>
 
