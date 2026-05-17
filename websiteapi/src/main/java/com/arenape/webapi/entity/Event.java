@@ -40,6 +40,9 @@ public class Event {
     @Column(nullable = false)
     private Integer availableTickets;
 
+    @Column(nullable = false)
+    private Integer totalTickets;
+
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
@@ -128,6 +131,14 @@ public class Event {
 
     public void setAvailableTickets(Integer availableTickets) {
         this.availableTickets = availableTickets;
+    }
+
+    public Integer getTotalTickets() {
+        return totalTickets;
+    }
+
+    public void setTotalTickets(Integer totalTickets) {
+        this.totalTickets = totalTickets;
     }
 
     public EventStatus getStatus() {

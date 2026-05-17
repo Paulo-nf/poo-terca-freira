@@ -15,6 +15,7 @@ public record EventResponseDTO(
         String imageUrl,
         BigDecimal price,
         Integer availableTickets,
+        Integer totalTickets,
         String status,
 
         @Schema(example = "2026-04-15T19:43")

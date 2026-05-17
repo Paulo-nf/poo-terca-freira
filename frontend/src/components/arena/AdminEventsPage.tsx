@@ -26,13 +26,6 @@ function inferStatus(e: Evento): StatusKey {
   return "ATIVO";
 }
 
-function capacidadeTotal(e: Evento) {
-  const base = Math.max(e.ingressosDisponiveis, 100);
-  if (base <= 200) return 200;
-  if (base <= 600) return 600;
-  if (base <= 1000) return 1000;
-  return Math.ceil(base / 1000) * 1000;
-}
 
 export function AdminEventsPage({
   eventos,
@@ -56,7 +49,7 @@ export function AdminEventsPage({
       .map((e) => {
         const status = inferStatus(e);
         if (status === "CANCELADO") return { e, status, total: 0, vendidos: 0 };
-        const total = capacidadeTotal(e);
+        const total = e.totalIngressos;
         const vendidos = Math.max(total - e.ingressosDisponiveis, 0);
         return { e, status, total, vendidos };
       })
@@ -75,8 +68,7 @@ export function AdminEventsPage({
     let receita = 0;
     eventos.forEach((e) => {
       if (inferStatus(e) === "CANCELADO") return;
-      const total = capacidadeTotal(e);
-      const v = Math.max(total - e.ingressosDisponiveis, 0);
+      const v = Math.max(e.totalIngressos - e.ingressosDisponiveis, 0);
       vendidos += v;
       receita += v * e.preco;
     });

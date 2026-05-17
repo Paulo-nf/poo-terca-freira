@@ -25,6 +25,7 @@ const DEFAULT_EVENTO: Evento = {
   categoria: "SHOW",
   descricao: "",
   ingressosDisponiveis: 1000,
+  totalIngressos: 1000,
   preco: 0,
   imagemUrl: null,
 };
@@ -46,7 +47,12 @@ export function AdminEventForm({
   const update = <K extends keyof Evento>(k: K, v: Evento[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleSalvar = () => {
-    onSalvar({ ...form, ingressosDisponiveis: capacidade });
+    const isCriando = mode === "criar";
+    onSalvar({
+      ...form,
+      ingressosDisponiveis: capacidade,
+      totalIngressos: isCriando ? capacidade : (form.totalIngressos || capacidade),
+    });
   };
 
   const meta = STATUS_META[status];

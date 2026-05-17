@@ -39,6 +39,7 @@ export function mapEvento(dto: any): Evento {
         imagemUrl: dto.imageUrl,
         preco: dto.price,
         ingressosDisponiveis: dto.availableTickets,
+        totalIngressos: dto.totalTickets ?? dto.availableTickets,
         data: dto.eventDate,
         categoria: inferCategoria(dto),
     };
