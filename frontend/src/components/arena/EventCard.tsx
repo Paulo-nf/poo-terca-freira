@@ -3,12 +3,11 @@ import { formatDate, formatPrice, getTicketStatus } from "@/lib/event-utils";
 
 interface EventCardProps {
   evento: Evento;
-  onComprar: (evento: Evento) => void;
   onSelect?: (evento: Evento) => void;
   animationDelay?: number;
 }
 
-export function EventCard({ evento, onComprar, onSelect, animationDelay = 0 }: EventCardProps) {
+export function EventCard({ evento, onSelect, animationDelay = 0 }: EventCardProps) {
   const cat = CATEGORIES[evento.categoria] || CATEGORIES.CULTURAL;
   const { day, month } = formatDate(evento.data);
   const status = getTicketStatus(evento.ingressosDisponiveis);
@@ -67,13 +66,6 @@ export function EventCard({ evento, onComprar, onSelect, animationDelay = 0 }: E
             <span className="text-[13px] font-bold" style={{ color: status.color }}>{status.label}</span>
             <span className="text-[12px] text-muted-foreground font-semibold mt-0.5">{formatPrice(evento.preco)}</span>
           </div>
-          <button
-            disabled={status.esgotado}
-            onClick={(e) => { e.stopPropagation(); onComprar(evento); }}
-            className="px-[18px] py-2 rounded-[10px] text-[13px] font-extrabold bg-blue text-primary-foreground transition-all duration-200 tracking-wide hover:bg-blue-dark hover:scale-[1.04] disabled:bg-surface2 disabled:text-muted-foreground disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {status.esgotado ? "Esgotado" : "Comprar"}
-          </button>
         </div>
       </div>
     </div>

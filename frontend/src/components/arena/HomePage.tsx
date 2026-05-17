@@ -49,7 +49,7 @@ export function HomePage({
           <>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-[22px]">
               {eventos.slice(0, 3).map((e, i) => (
-                <EventCard key={e.id} evento={e} onComprar={onComprar} onSelect={onSelectEvento} animationDelay={i * 0.08} />
+                <EventCard key={e.id} evento={e} onSelect={onSelectEvento} animationDelay={i * 0.08} />
               ))}
             </div>
             {eventos.length > 3 && (

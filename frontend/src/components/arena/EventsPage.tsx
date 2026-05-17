@@ -6,11 +6,10 @@ import { SkeletonCard } from "@/components/arena/SkeletonCard";
 interface EventsPageProps {
   eventos: Evento[];
   loading: boolean;
-  onComprar: (evento: Evento) => void;
   onSelectEvento?: (evento: Evento) => void;
 }
 
-export function EventsPage({ eventos, loading, onComprar, onSelectEvento }: EventsPageProps) {
+export function EventsPage({ eventos, loading, onSelectEvento }: EventsPageProps) {
   const [catFilter, setCatFilter] = useState<"TODAS" | CategoryKey>("TODAS");
   const [search, setSearch] = useState("");
 
@@ -84,7 +83,7 @@ export function EventsPage({ eventos, loading, onComprar, onSelectEvento }: Even
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-[22px]">
           {filtered.map((e, i) => (
-            <EventCard key={e.id} evento={e} onComprar={onComprar} onSelect={onSelectEvento} animationDelay={i * 0.06} />
+            <EventCard key={e.id} evento={e} onSelect={onSelectEvento} animationDelay={i * 0.06} />
           ))}
         </div>
       )}

@@ -197,7 +197,7 @@ function Shell() {
                 />
             )}
             {page === "eventos" && (
-                <EventsPage eventos={eventos} loading={loading} onComprar={handleComprar} onSelectEvento={handleSelectEvento} />
+                <EventsPage eventos={eventos} loading={loading} onSelectEvento={handleSelectEvento} />
             )}
             {page === "evento" && eventoSelecionado && (
                 <EventDetailPage
