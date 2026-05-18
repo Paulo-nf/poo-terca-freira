@@ -68,6 +68,7 @@ npm run dev
 
 Em outro terminal
 ```bash
+cd websiteapi/
 mvn clean spring-boot:run
 ```
 
