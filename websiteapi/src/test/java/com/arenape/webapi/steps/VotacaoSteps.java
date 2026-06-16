@@ -48,6 +48,15 @@ public class VotacaoSteps {
 
     @Dado("que existe um evento chamado {string}")
     public void que_existe_um_evento_chamado(String nome) {
+        eventId = criarEvento(nome, EventStatus.CONFIRMED);
+    }
+
+    @Dado("que existe um evento cancelado chamado {string}")
+    public void que_existe_um_evento_cancelado_chamado(String nome) {
+        eventId = criarEvento(nome, EventStatus.CANCELLED);
+    }
+
+    private Long criarEvento(String nome, EventStatus status) {
         Event evento = new Event();
         evento.setName(nome);
         evento.setLocation("Arena PE");
@@ -56,8 +65,8 @@ public class VotacaoSteps {
         evento.setPrice(BigDecimal.valueOf(100));
         evento.setAvailableTickets(1000);
         evento.setTotalTickets(1000);
-        evento.setStatus(EventStatus.CONFIRMED);
-        eventId = eventRepository.save(evento).getId();
+        evento.setStatus(status);
+        return eventRepository.save(evento).getId();
     }
 
     @Quando("eu voto nesse evento")
@@ -77,5 +86,17 @@ public class VotacaoSteps {
         Map<?, ?> body = objectMapper.readValue(
                 voteResult.getResponse().getContentAsString(), Map.class);
         assertThat(((Number) body.get("votes")).intValue()).isEqualTo(esperado);
+    }
+
+    @Então("a votação é recusada com a mensagem {string}")
+    public void a_votacao_e_recusada_com_a_mensagem(String mensagem) throws Exception {
+        int status = voteResult.getResponse().getStatus();
+        assertThat(status)
+                .as("votar em evento cancelado deveria ser recusado (422), mas retornou " + status)
+                .isEqualTo(422);
+
+        Map<?, ?> body = objectMapper.readValue(
+                voteResult.getResponse().getContentAsString(), Map.class);
+        assertThat(body.get("erro")).isEqualTo(mensagem);
     }
 }

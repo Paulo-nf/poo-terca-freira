@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.arenape.webapi.entity.enums.EventStatus;
+import com.arenape.webapi.exception.BusinessException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -87,6 +88,9 @@ public class Event {
 
     /** Registra um voto na enquete "próximo evento". */
     public void vote() {
+        if (this.status == EventStatus.CANCELLED) {
+            throw new BusinessException("Não é possível votar em um evento cancelado");
+        }
         this.votes = (this.votes == null ? 0 : this.votes) + 1;
     }
 
