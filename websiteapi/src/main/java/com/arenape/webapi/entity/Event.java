@@ -85,6 +85,11 @@ public class Event {
         }
     }
 
+    /** Registra um voto na enquete "próximo evento". */
+    public void vote() {
+        this.votes = (this.votes == null ? 0 : this.votes) + 1;
+    }
+
     public Long getId() {
         return id;
     }

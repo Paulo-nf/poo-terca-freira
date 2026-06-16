@@ -38,7 +38,7 @@ public class EventService {
 
     public int vote(Long id) {
         Event event = findEventById(id);
-        event.setVotes((event.getVotes() == null ? 0 : event.getVotes()) + 1);
+        event.vote();
         return repository.save(event).getVotes();
     }
 
